@@ -13,13 +13,13 @@ function initMap() {
 
   LEAFLET_MAP = L.map("map", { zoomControl: true }).setView([20.676, -103.39], 11);
 
-  // Capa base en tonos oscuros/azulados (CARTO dark, acorde a la paleta institucional)
+  // Capa base clara ("blanca") con relieve, similar al mapa de referencia.
   L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
     {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      subdomains: "abcd",
-      maxZoom: 19,
+      attribution: 'Tiles &copy; Esri — Esri, TomTom, FAO, NOAA, USGS',
+      maxZoom: 13,
+      maxNativeZoom: 13,
     }
   ).addTo(LEAFLET_MAP);
 
