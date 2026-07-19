@@ -8,20 +8,58 @@
 let LEAFLET_MAP = null;
 let MARKER_CLUSTER = null;
 
+// Municipios del AMG (idéntico al listado documentado en CAPAS_MAPA_COMPLETO.md)
+const MUNICIPIOS_AMG = [
+  'Guadalajara', 'Zapopan', 'San Pedro Tlaquepaque',
+  'Tlajomulco de Zuñiga', 'Tonala', 'El Salto',
+  'Juanacatlan', 'Ixtlahuacan de los Membrillos', 'Zapotlanejo',
+];
+
+function normalizaNombre(str) {
+  return (str || "").toLowerCase().replace(/ú/g, "u").replace(/á/g, "a");
+}
+
 function initMap() {
   if (LEAFLET_MAP) return LEAFLET_MAP;
 
   LEAFLET_MAP = L.map("map", { zoomControl: true }).setView([20.676, -103.39], 11);
 
-  // Capa base clara ("blanca") con relieve, similar al mapa de referencia.
+  // Capa base "Relieve" — EXACTAMENTE la misma que usa ETA (Esri World_Topo_Map).
   L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
-    {
-      attribution: 'Tiles &copy; Esri — Esri, TomTom, FAO, NOAA, USGS',
-      maxZoom: 13,
-      maxNativeZoom: 13,
-    }
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    { attribution: '© Esri, HERE, Garmin, Intermap, increment P Corp.' }
   ).addTo(LEAFLET_MAP);
+
+  // Fronteras municipales (idénticas a ETA): Jalisco completo (punteado, fondo)
+  // + AMG resaltado en verde fluorescente. Se cargan de forma asíncrona.
+  fetch("jalisco_municipios.geojson")
+    .then(r => r.json())
+    .catch(() => window.__CGES_MUNICIPIOS_GEOJSON_INLINE__ || { type: "FeatureCollection", features: [] })
+    .then(jaliscoBorders => {
+      const jaliscoLayer = L.geoJSON(jaliscoBorders, {
+        style: { color: "#000000", weight: 2, opacity: 0.1, fillOpacity: 0.1, dashArray: "3,3" },
+        onEachFeature: (feature, layer) => {
+          const nombre = feature.properties.NOMGEO || feature.properties.name || feature.properties.NOM_MUN;
+          layer.bindPopup(`${nombre}`);
+        },
+      });
+
+      const amgFeatures = jaliscoBorders.features.filter(f => {
+        const nombre = f.properties.NOMGEO || f.properties.name || f.properties.NOM_MUN;
+        return MUNICIPIOS_AMG.some(mun => normalizaNombre(nombre).includes(normalizaNombre(mun)));
+      });
+
+      const amgLayer = L.geoJSON({ type: "FeatureCollection", features: amgFeatures }, {
+        style: { color: "#66FF66", weight: 2, opacity: 0.2, fillOpacity: 0.2, fillColor: "#66FF66" },
+        onEachFeature: (feature, layer) => {
+          const nombre = feature.properties.NOMGEO || feature.properties.name || feature.properties.NOM_MUN;
+          layer.bindPopup(`<strong>Municipio AMG:</strong> ${nombre}`);
+        },
+      });
+
+      L.layerGroup([jaliscoLayer, amgLayer]).addTo(LEAFLET_MAP);
+    })
+    .catch(err => console.warn("No se pudieron cargar las fronteras municipales:", err));
 
   MARKER_CLUSTER = L.markerClusterGroup({
     maxClusterRadius: 45,

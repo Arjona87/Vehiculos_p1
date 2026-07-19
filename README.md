@@ -2,6 +2,14 @@
 
 Dashboard HTML estático (sin backend) que analiza el delito de robo de vehículo particular en el Área Metropolitana de Guadalajara (AMG), alimentado en vivo desde Google Sheets, con mapa dinámico de eventos georreferenciados.
 
+## Mapa base y fronteras municipales (idénticos a ETA)
+
+La capa base del mapa es exactamente la misma que usa el sitio de referencia ETA: **Esri World_Topo_Map** ("Relieve"). Sobre ella se cargan, siempre visibles, dos capas de fronteras municipales tomadas de `jalisco_municipios.geojson`:
+- Jalisco completo — línea punteada negra, muy transparente (fondo de referencia).
+- Municipios del AMG — resaltados en verde fluorescente (`#66FF66`).
+
+El archivo `jalisco_municipios.geojson` incluido aquí es una **versión simplificada** (topología preservada, ~1 MB en vez de los ~14.7 MB del archivo original que compartiste) para que cargue rápido tanto en GitHub Pages como en la versión de artifact autocontenida. Si se requiere el detalle geométrico completo del archivo original, basta con reemplazar este archivo por el original — el código no necesita cambios, ya que usa las mismas propiedades (`NOMGEO`).
+
 ## Estructura del proyecto (carpeta única, sin subcarpetas)
 
 ```
