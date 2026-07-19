@@ -7,7 +7,7 @@
 const STATE = {
   allRecords: [],
   filtered: [],
-  filters: { anio: "all", mes: "all", sector: "all", violencia: "all", marca: "all" },
+  filters: { anio: "all", mes: "all", municipio: "all", violencia: "all", marca: "all" },
   source: "live",
 };
 
@@ -31,7 +31,7 @@ function applyFilters() {
   STATE.filtered = STATE.allRecords.filter(r => {
     if (f.anio !== "all" && String(r.anio) !== String(f.anio)) return false;
     if (f.mes !== "all" && r.mes !== f.mes) return false;
-    if (f.sector !== "all" && r.sector !== f.sector) return false;
+    if (f.municipio !== "all" && r.municipioGeo !== f.municipio) return false;
     if (f.violencia !== "all") {
       const wantViolence = f.violencia === "con";
       if (r.conViolencia !== wantViolence) return false;
@@ -43,12 +43,12 @@ function applyFilters() {
 
 function populateFilterOptions() {
   const years = [...new Set(STATE.allRecords.map(r => r.anio))].sort();
-  const sectores = [...new Set(STATE.allRecords.map(r => r.sector))].sort();
+  const municipios = [...new Set(STATE.allRecords.map(r => r.municipioGeo))].sort();
   const marcas = [...new Set(STATE.allRecords.map(r => r.marca))].sort();
 
   fillSelect("filter-anio", years, "Todos los años");
   fillSelect("filter-mes", window.CGES.MESES_ORDEN, "Todos los meses", window.CGES.toTitle);
-  fillSelect("filter-sector", sectores, "Todos los sectores");
+  fillSelect("filter-municipio", municipios, "Todos los municipios", window.CGES.toTitle);
   fillSelect("filter-marca", marcas, "Todas las marcas", window.CGES.toTitle);
 
   // Selector de año del header (hero) — mismo comportamiento, ligado al filtro global.
@@ -63,7 +63,7 @@ function fillSelect(id, values, placeholderLabel, labelFn) {
 }
 
 function wireFilterEvents() {
-  ["filter-anio","filter-mes","filter-sector","filter-violencia","filter-marca"].forEach(id => {
+  ["filter-anio","filter-mes","filter-municipio","filter-violencia","filter-marca"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener("change", () => {
@@ -84,8 +84,8 @@ function wireFilterEvents() {
 
   const btnReset = document.getElementById("btn-reset-filters");
   if (btnReset) btnReset.addEventListener("click", () => {
-    STATE.filters = { anio: "all", mes: "all", sector: "all", violencia: "all", marca: "all" };
-    ["filter-anio","filter-mes","filter-sector","filter-violencia","filter-marca","hero-year-select"]
+    STATE.filters = { anio: "all", mes: "all", municipio: "all", violencia: "all", marca: "all" };
+    ["filter-anio","filter-mes","filter-municipio","filter-violencia","filter-marca","hero-year-select"]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = "all"; });
     renderAll();
   });

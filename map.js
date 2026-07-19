@@ -6,7 +6,7 @@
    ========================================================================= */
 
 let LEAFLET_MAP = null;
-let MARKER_CLUSTER = null;
+let MARKERS_LAYER = null;
 
 // Municipios del AMG (idéntico al listado documentado en CAPAS_MAPA_COMPLETO.md)
 const MUNICIPIOS_AMG = [
@@ -61,24 +61,8 @@ function initMap() {
     })
     .catch(err => console.warn("No se pudieron cargar las fronteras municipales:", err));
 
-  MARKER_CLUSTER = L.markerClusterGroup({
-    maxClusterRadius: 45,
-    iconCreateFunction: function (cluster) {
-      const count = cluster.getChildCount();
-      const size = count > 80 ? 44 : count > 25 ? 38 : 32;
-      return L.divIcon({
-        html: `<div style="
-          width:${size}px;height:${size}px;border-radius:50%;
-          background:rgba(19,41,75,.88); color:#fff; display:flex;
-          align-items:center;justify-content:center; font-weight:700;
-          font-family:Inter,sans-serif; font-size:12px;
-          border:2px solid #F5821F;">${count}</div>`,
-        className: "",
-        iconSize: [size, size],
-      });
-    },
-  });
-  LEAFLET_MAP.addLayer(MARKER_CLUSTER);
+  MARKERS_LAYER = L.layerGroup();
+  LEAFLET_MAP.addLayer(MARKERS_LAYER);
 
   return LEAFLET_MAP;
 }
@@ -106,10 +90,10 @@ function popupHtml(record) {
 
 function renderMapMarkers(records) {
   initMap();
-  MARKER_CLUSTER.clearLayers();
+  MARKERS_LAYER.clearLayers();
 
   const withGeo = records.filter(r => r.lat && r.lon);
-  const layers = withGeo.map(r => {
+  withGeo.forEach(r => {
     const marker = L.circleMarker([r.lat, r.lon], {
       radius: 6,
       color: "#fff",
@@ -118,10 +102,8 @@ function renderMapMarkers(records) {
       fillOpacity: 0.9,
     });
     marker.bindPopup(popupHtml(r));
-    return marker;
+    marker.addTo(MARKERS_LAYER);
   });
-
-  MARKER_CLUSTER.addLayers(layers);
 
   const totalStat = document.getElementById("map-total-stat");
   if (totalStat) {

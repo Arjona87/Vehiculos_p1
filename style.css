@@ -95,7 +95,7 @@ header.hero::after{
   position:relative; z-index:1;
 }
 .brand{display:flex; align-items:center; gap:16px;}
-.brand img{height:56px; width:auto;}
+.brand img{height:92px; width:auto;}
 .brand-text small{
   display:block; color:#9FB2CC; font-size:11.5px; letter-spacing:.6px; text-transform:uppercase;
 }
