@@ -109,7 +109,7 @@ function setText(id, val) {
 
 function renderInsights(agg) {
   const modusTop = agg.topModus[0];
-  const colTop = agg.topColonias[0];
+  const colTop = agg.topColoniasDetalle[0];
   const secTop = agg.topSectores[0];
   const marcaTop = agg.topMarcas[0];
 
@@ -125,7 +125,7 @@ function renderInsights(agg) {
 
   setHtml("insight-colonias",
     colTop
-      ? `<b>${window.CGES.toTitle(colTop[0])}</b> es la colonia con mayor incidencia bajo el filtro actual (${fmtNum(colTop[1])} eventos). El sector con mayor incidencia es <b>${secTop ? secTop[0] : "s/d"}</b> con ${secTop?fmtNum(secTop[1]):0} eventos.`
+      ? `<b>${window.CGES.toTitle(colTop.colonia)}</b>, en el municipio de <b>${window.CGES.toTitle(colTop.municipio)}</b>, es la colonia con mayor incidencia bajo el filtro actual (${fmtNum(colTop.count)} eventos). El sector con mayor incidencia es <b>${secTop ? secTop[0] : "s/d"}</b> con ${secTop?fmtNum(secTop[1]):0} eventos.`
       : `No hay datos suficientes de colonias para este filtro.`);
 
   setHtml("insight-marcas",
@@ -160,6 +160,21 @@ function renderRankTable(tbodyId, entries, total) {
     </tr>`).join("");
 }
 
+// Tabla de colonias con columna de Municipio en primer lugar, para
+// desambiguar colonias homónimas entre municipios (ej. "Centro").
+function renderColoniasTable(tbodyId, detalle, total) {
+  const el = document.getElementById(tbodyId);
+  if (!el) return;
+  const max = detalle.length ? detalle[0].count : 1;
+  el.innerHTML = detalle.map(d => `
+    <tr>
+      <td>${window.CGES.toTitle(d.municipio)}</td>
+      <td class="bar-cell"><div class="bar" style="width:${(d.count/max*100).toFixed(0)}%"></div><span>${window.CGES.toTitle(d.colonia)}</span></td>
+      <td>${fmtNum(d.count)}</td>
+      <td>${total ? Math.round(d.count/total*100) : 0}%</td>
+    </tr>`).join("");
+}
+
 /* ---------------------- Render general ---------------------- */
 function renderAll() {
   applyFilters();
@@ -171,6 +186,7 @@ function renderAll() {
   window.CGES.renderMonthlyTrend(agg.monthlyByYear, window.CGES.MESES_ORDEN);
   window.CGES.renderViolenceDonut(agg.conViolencia, agg.sinViolencia);
   window.CGES.renderModusDonut(agg.topModus);
+  window.CGES.renderHBar("chart-municipios", agg.topMunicipios, window.CGES.PALETTE.navy);
   window.CGES.renderHBar("chart-colonias", agg.topColonias, window.CGES.PALETTE.blue);
   window.CGES.renderHBar("chart-sectores", agg.topSectores, window.CGES.PALETTE.navy);
   window.CGES.renderHBar("chart-marcas", agg.topMarcas, window.CGES.PALETTE.orange);
@@ -179,7 +195,7 @@ function renderAll() {
   window.CGES.renderHeatmapTable("heatmap-violencia", agg.heatmapViolencia, window.CGES.DIAS_ORDEN, "orange");
   window.CGES.renderHeatmapTable("heatmap-sin-violencia", agg.heatmapSinViolencia, window.CGES.DIAS_ORDEN, "blue");
 
-  renderRankTable("table-colonias", agg.topColonias, agg.total);
+  renderColoniasTable("table-colonias", agg.topColoniasDetalle, agg.total);
   renderRankTable("table-sectores", agg.topSectores, agg.total);
 
   window.CGES.renderMapMarkers(STATE.filtered);

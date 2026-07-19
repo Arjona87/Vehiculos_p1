@@ -56,6 +56,12 @@ El Sheet actual es un listado de **casos individuales** (muestra cruda de Fiscal
 - No se identificó una columna explícita tipo "¿fue detenido el probable responsable?" o "¿fue recuperado el vehículo?". El campo `SituaciOn` existe en el esquema pero, en la muestra inspeccionada, apareció vacío en todos los registros.
 - El dashboard ya está preparado para poblar estas secciones automáticamente en cuanto el campo `SituaciOn` (o uno nuevo, ej. `RECUPERADO`, `DETENIDO`) tenga valores reales — no requiere cambios de código, solo ajustar la lógica de `computeAggregates()` en `data.js` una vez que el usuario confirme el nombre y los valores posibles de esa columna.
 
+## 4bis. Columna `MunicipioG` (gráfica de municipios y desambiguación de colonias)
+
+Se agregó una gráfica de "Top municipios" que usa la columna geocodificada `MunicipioG`. Al momento de esta actualización, esa columna **no estaba presente** en el Sheet conectado (ver punto 1), por lo que `data.js` aplica automáticamente un *fallback* a la columna `MUNICIPIO` (ya mapeada) mientras `MunicipioG` no exista. En cuanto Fiscalía incorpore `MunicipioG` al Sheet, el dashboard la tomará automáticamente sin cambios de código.
+
+Además, la tabla y gráfica de colonias ahora muestran el **municipio (columna `MUNICIPIO`)** junto a cada colonia, para distinguir colonias homónimas que existen en más de un municipio del AMG (ej. "Centro" en Guadalajara vs. "Centro" en Tlaquepaque).
+
 ## 5. Cómo agregar más años (v2+)
 
 1. Agregar las filas de años adicionales (2024, 2025, 2027…) al mismo Sheet, respetando exactamente los mismos encabezados de columna.

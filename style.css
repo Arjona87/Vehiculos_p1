@@ -102,8 +102,12 @@ header.hero::after{
 .hero-title{
   margin:26px 0 6px; position:relative; z-index:1;
   font-family:var(--font-display);
-  font-weight:800; font-size:clamp(28px,4vw,44px);
-  letter-spacing:.2px;
+  font-weight:800; font-size:clamp(15px,2.05vw,23px);
+  letter-spacing:.1px;
+  white-space:nowrap;
+}
+@media (max-width:760px){
+  .hero-title{white-space:normal; font-size:clamp(20px,5.2vw,26px);}
 }
 .hero-title .accent{color:var(--orange);}
 .hero-sub{

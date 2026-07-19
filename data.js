@@ -51,6 +51,7 @@ const COLUMN_MAP = {
   medioComision: "Medio_de_c",
   modusOperandi: "Modus_oper",
   municipio: "MUNICIPIO",
+  municipioGeo: "MunicipioG", // ver data-mapping.md: puede no existir aún en el Sheet conectado
   estado: "ESTADO",
   colonia: "COLONIA",
   violenciaEst: "Violencia_",
@@ -214,6 +215,8 @@ function normalizeRecord(raw) {
     diaSemana,
     franja,
     municipio: (g("municipio") || "SIN DATO").toString().trim().toUpperCase(),
+    // MunicipioG (geocodificado) con fallback a MUNICIPIO si el Sheet aún no trae esa columna.
+    municipioGeo: (g("municipioGeo") || g("municipio") || "SIN DATO").toString().trim().toUpperCase(),
     colonia: (g("colonia") || "SIN DATO").toString().trim().toUpperCase(),
     sector: (g("zonaGeo") || "SIN DATO").toString().trim().toUpperCase(),
     conViolencia,
@@ -262,10 +265,22 @@ function computeAggregates(records) {
     monthlyByYear[r.anio][r.mes] = (monthlyByYear[r.anio][r.mes] || 0) + 1;
   });
 
-  // Colonias
-  const colonias = {};
-  records.forEach(r => { colonias[r.colonia] = (colonias[r.colonia] || 0) + 1; });
-  const topColonias = Object.entries(colonias).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  // Municipios (columna MunicipioG, geocodificada; con fallback a MUNICIPIO)
+  const municipios = {};
+  records.forEach(r => { municipios[r.municipioGeo] = (municipios[r.municipioGeo] || 0) + 1; });
+  const topMunicipios = Object.entries(municipios).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  // Colonias — se agregan junto con su municipio para desambiguar colonias
+  // homónimas (ej. "Centro") que existen en más de un municipio del AMG.
+  const coloniasDetalle = {};
+  records.forEach(r => {
+    const key = `${r.municipio}|||${r.colonia}`;
+    if (!coloniasDetalle[key]) coloniasDetalle[key] = { municipio: r.municipio, colonia: r.colonia, count: 0 };
+    coloniasDetalle[key].count++;
+  });
+  const topColoniasDetalle = Object.values(coloniasDetalle).sort((a,b)=>b.count-a.count).slice(0,10);
+  // Formato [nombre, valor] para reutilizar la gráfica de barras genérica.
+  const topColonias = topColoniasDetalle.map(d => [`${d.colonia} — ${d.municipio}`, d.count]);
 
   // Sectores
   const sectores = {};
@@ -310,7 +325,7 @@ function computeAggregates(records) {
     pctConViolencia: total ? Math.round((conViolencia/total)*100) : 0,
     pctSinViolencia: total ? Math.round((sinViolencia/total)*100) : 0,
     monthlyByYear,
-    topColonias, topSectores, topMarcas, topSubmarcas, topModus,
+    topMunicipios, topColonias, topColoniasDetalle, topSectores, topMarcas, topSubmarcas, topModus,
     heatmapViolencia, heatmapSinViolencia,
     situacionesDisponibles,
     years: Object.keys(monthlyByYear).map(Number).sort(),

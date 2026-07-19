@@ -57,6 +57,7 @@ function popupHtml(record) {
   return `
     <div style="font-family:Inter,sans-serif; font-size:12.5px; min-width:190px;">
       <div style="font-weight:700; color:#13294B; margin-bottom:4px;">${fecha}</div>
+      <div><b>Municipio:</b> ${window.CGES.toTitle(record.municipio)}</div>
       <div><b>Colonia:</b> ${window.CGES.toTitle(record.colonia)}</div>
       <div><b>Sector:</b> ${record.sector}</div>
       <div><b>Modalidad:</b> ${window.CGES.toTitle(record.modus)}</div>

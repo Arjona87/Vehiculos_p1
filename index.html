@@ -195,9 +195,15 @@
       <div class="eyebrow">Georreferencia territorial</div>
       <h2>Colonias y sectores con mayor incidencia</h2>
     </div>
+    <div class="card" style="margin-bottom:18px;">
+      <h3>Top municipios</h3>
+      <div class="card-sub">Calculado a partir de la columna geocodificada "MunicipioG" (con respaldo en "MUNICIPIO" si aún no está disponible en la fuente).</div>
+      <div class="chart-box tall" id="chart-municipios"></div>
+    </div>
     <div class="grid-2">
       <div class="card">
         <h3>Top 10 colonias</h3>
+        <div class="card-sub">Se muestra colonia y municipio para distinguir colonias con el mismo nombre en distintos municipios.</div>
         <div class="chart-box tall" id="chart-colonias"></div>
       </div>
       <div class="card">
@@ -209,7 +215,7 @@
       <div class="card">
         <h3>Ranking detallado de colonias</h3>
         <table class="rank-table">
-          <thead><tr><th>Colonia</th><th>Eventos</th><th>%</th></tr></thead>
+          <thead><tr><th>Municipio</th><th>Colonia</th><th>Eventos</th><th>%</th></tr></thead>
           <tbody id="table-colonias"></tbody>
         </table>
       </div>

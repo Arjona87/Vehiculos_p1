@@ -50,7 +50,7 @@ function renderMonthlyTrend(monthlyByYear, mesesOrden) {
     tooltip: { trigger: "axis" },
     legend: { data: years, top: 0, textStyle: { fontSize: 12 } },
     grid: { left: 40, right: 16, top: 34, bottom: 28 },
-    xAxis: { type: "category", data: mesesOrden.map(m => m.slice(0,3)), axisLine: { lineStyle: { color: "#D8DCE2" } } },
+    xAxis: { type: "category", data: mesesOrden.map(m => m.slice(0,3)), axisLine: { lineStyle: { color: "#D8DCE2" } }, axisLabel: { color: "#13294B", fontWeight: 600, fontSize: 12 } },
     yAxis: { type: "value", splitLine: { lineStyle: { color: "#EEF1F4" } } },
     series,
   });
