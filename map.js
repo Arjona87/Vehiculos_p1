@@ -24,6 +24,12 @@ function initMap() {
 
   LEAFLET_MAP = L.map("map", { zoomControl: true }).setView([20.676, -103.39], 11);
 
+  // Pane dedicado para los puntos de robos, SIEMPRE por encima de las
+  // fronteras municipales (overlayPane), para que el clic en un punto
+  // muestre la información del evento y no la del municipio debajo.
+  LEAFLET_MAP.createPane("cgesMarkersPane");
+  LEAFLET_MAP.getPane("cgesMarkersPane").style.zIndex = 650;
+
   // Capa base "Relieve" — EXACTAMENTE la misma que usa ETA (Esri World_Topo_Map).
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
@@ -95,6 +101,7 @@ function renderMapMarkers(records) {
   const withGeo = records.filter(r => r.lat && r.lon);
   withGeo.forEach(r => {
     const marker = L.circleMarker([r.lat, r.lon], {
+      pane: "cgesMarkersPane",
       radius: 6,
       color: "#fff",
       weight: 1,

@@ -109,6 +109,7 @@ header.hero::after{
   .hero-title{white-space:normal; font-size:clamp(20px,5.2vw,26px);}
 }
 .hero-title .accent{color:var(--orange);}
+.hero-controls .brand{margin-left:auto;}
 .hero-sub{
   position:relative; z-index:1;
   color:var(--gray-text); font-size:15px; max-width:720px; line-height:1.5;
