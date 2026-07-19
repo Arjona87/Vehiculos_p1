@@ -74,10 +74,8 @@ img{max-width:100%;display:block;}
 /* ---------- Header / Portada ---------- */
 header.hero{
   position:relative;
-  background:
-    linear-gradient(160deg, rgba(11,31,58,.94), rgba(19,41,75,.90)),
-    repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 40px);
-  color:var(--white);
+  background:var(--white);
+  color:var(--ink);
   padding:34px 0 40px;
   overflow:hidden;
   border-bottom:4px solid var(--orange);
@@ -85,7 +83,7 @@ header.hero{
 header.hero::after{
   content:"";
   position:absolute; inset:0;
-  background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.5px);
+  background-image:radial-gradient(rgba(19,41,75,.05) 1px, transparent 1.5px);
   background-size:26px 26px;
   opacity:.35;
   pointer-events:none;
@@ -105,6 +103,7 @@ header.hero::after{
   font-weight:800; font-size:clamp(15px,2.05vw,23px);
   letter-spacing:.1px;
   white-space:nowrap;
+  color:var(--blue);
 }
 @media (max-width:760px){
   .hero-title{white-space:normal; font-size:clamp(20px,5.2vw,26px);}
@@ -112,16 +111,16 @@ header.hero::after{
 .hero-title .accent{color:var(--orange);}
 .hero-sub{
   position:relative; z-index:1;
-  color:#C9D6E8; font-size:15px; max-width:720px; line-height:1.5;
+  color:var(--gray-text); font-size:15px; max-width:720px; line-height:1.5;
 }
 .hero-controls{
   position:relative; z-index:1;
   margin-top:22px; display:flex; gap:14px; flex-wrap:wrap; align-items:center;
 }
 .hero-controls select, .hero-controls .chip{
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.25);
-  color:var(--white);
+  background:var(--gray-bg);
+  border:1px solid var(--gray-line);
+  color:var(--ink);
   padding:9px 14px;
   border-radius:999px;
   font-size:13.5px;
@@ -130,7 +129,7 @@ header.hero::after{
 .hero-controls select{cursor:pointer;}
 .hero-controls select option{color:#111;}
 .badge-source{
-  font-size:12px; color:#9FB2CC; display:flex; align-items:center; gap:6px;
+  font-size:12px; color:var(--gray-text); display:flex; align-items:center; gap:6px;
 }
 .badge-source b{color:var(--orange);}
 
