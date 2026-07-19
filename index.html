@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robo de Vehículos — Área Metropolitana de Guadalajara | CGES Jalisco</title>
+<meta name="description" content="Dashboard de análisis del delito de robo de vehículos en el Área Metropolitana de Guadalajara. Coordinación General Estratégica de Seguridad, Gobierno de Jalisco.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div>Cargando información del Google Sheet…</div>
+</div>
+
+<!-- ============ Barra de estado ============ -->
+<div class="status-bar">
+  <div class="container">
+    <div><span id="status-dot" class="status-dot"></span><span id="status-text">Conectando con la fuente de datos…</span></div>
+    <div>Cifras preliminares · sujetas a actualización</div>
+  </div>
+</div>
+
+<!-- ============ Header / Portada ============ -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-top">
+      <div class="brand">
+        <img src="CGES_logo.png" alt="Coordinación General Estratégica de Seguridad — Gobierno de Jalisco">
+      </div>
+      <div class="badge-source">
+        Fuente: <b>C5 Zapopan</b> · <b>Fiscalía General del Estado de Jalisco</b>
+      </div>
+    </div>
+
+    <h1 class="hero-title">Robo de Vehículos <span class="accent">/</span> Área Metropolitana de Guadalajara</h1>
+    <p class="hero-sub">Panel de monitoreo del delito de robo de vehículo particular en el AMG. Este panel se alimenta en vivo desde la base de datos oficial y se actualiza automáticamente en cada carga.</p>
+
+    <div class="hero-controls">
+      <div class="chip">Periodo base v1: <b>Enero – Junio 2026</b></div>
+      <select id="hero-year-select" aria-label="Seleccionar año">
+        <option value="all">Todos los años (2026 en v1)</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<!-- ============ Filtros globales ============ -->
+<div class="filters-bar">
+  <div class="container">
+    <div class="filter-field">
+      <label for="filter-anio">Año</label>
+      <select id="filter-anio"><option value="all">Todos</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-mes">Mes</label>
+      <select id="filter-mes"><option value="all">Todos</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-sector">Sector</label>
+      <select id="filter-sector"><option value="all">Todos</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-violencia">Violencia</label>
+      <select id="filter-violencia">
+        <option value="all">Todos</option>
+        <option value="con">Con violencia</option>
+        <option value="sin">Sin violencia</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-marca">Marca</label>
+      <select id="filter-marca"><option value="all">Todas</option></select>
+    </div>
+    <button class="btn-reset" id="btn-reset-filters">Limpiar filtros</button>
+    <div class="filter-count" id="filter-count"></div>
+  </div>
+</div>
+
+<main class="container">
+
+  <!-- ============ 2. KPIs Generales ============ -->
+  <section class="section" id="kpis-section">
+    <div class="section-head">
+      <div class="eyebrow">Panorama general</div>
+      <h2>Indicadores clave</h2>
+      <p>Cifras acumuladas bajo el filtro actualmente seleccionado.</p>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon">🚗</div>
+        <div class="kpi-label">Robos totales</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon orange">⚠️</div>
+        <div class="kpi-label">Con violencia</div>
+        <div class="kpi-value" id="kpi-con-violencia">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon blue">🛡️</div>
+        <div class="kpi-label">Sin violencia</div>
+        <div class="kpi-value" id="kpi-sin-violencia">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green">%</div>
+        <div class="kpi-label">% con violencia</div>
+        <div class="kpi-value" id="kpi-pct-violencia">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. Comparativo mensual multi-año ============ -->
+  <section class="section" id="monthly-section">
+    <div class="section-head">
+      <div class="eyebrow">Serie histórica</div>
+      <h2>Comparativo mensual (multi-año)</h2>
+      <p>Preparado para superponer varios años conforme se incorporen al Google Sheet.</p>
+    </div>
+    <div class="card">
+      <h3>Robos de vehículo por mes</h3>
+      <div class="card-sub">Se detectan automáticamente los años disponibles en la fuente de datos.</div>
+      <div class="chart-box tall" id="chart-monthly"></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. Con violencia vs sin violencia ============ -->
+  <section class="section" id="violence-section">
+    <div class="section-head">
+      <div class="eyebrow">Modalidad del delito</div>
+      <h2>Con violencia vs. sin violencia</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Distribución</h3>
+        <div class="chart-box" id="chart-violence"></div>
+      </div>
+      <div class="card">
+        <h3>Lectura del periodo filtrado</h3>
+        <div class="insight" id="insight-violence">Cargando…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. Análisis temporal (día y hora) ============ -->
+  <section class="section" id="temporal-section">
+    <div class="section-head">
+      <div class="eyebrow">Concentración temporal</div>
+      <h2>Análisis por día y franja horaria</h2>
+      <p>Madrugada / mañana / tarde / noche × día de la semana, separado por modalidad.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Robos con violencia</h3>
+        <div id="heatmap-violencia"></div>
+      </div>
+      <div class="card">
+        <h3>Robos sin violencia</h3>
+        <div id="heatmap-sin-violencia"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. Modus operandi ============ -->
+  <section class="section" id="modus-section">
+    <div class="section-head">
+      <div class="eyebrow">Método de comisión</div>
+      <h2>Modus operandi</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Distribución de modus operandi</h3>
+        <div class="chart-box tall" id="chart-modus"></div>
+      </div>
+      <div class="card">
+        <h3>Lectura del periodo filtrado</h3>
+        <div class="insight" id="insight-modus">Cargando…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. Colonias y sectores ============ -->
+  <section class="section" id="colonias-section">
+    <div class="section-head">
+      <div class="eyebrow">Georreferencia territorial</div>
+      <h2>Colonias y sectores con mayor incidencia</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Top 10 colonias</h3>
+        <div class="chart-box tall" id="chart-colonias"></div>
+      </div>
+      <div class="card">
+        <h3>Robos por sector</h3>
+        <div class="chart-box tall" id="chart-sectores"></div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="card">
+        <h3>Ranking detallado de colonias</h3>
+        <table class="rank-table">
+          <thead><tr><th>Colonia</th><th>Eventos</th><th>%</th></tr></thead>
+          <tbody id="table-colonias"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Ranking detallado de sectores</h3>
+        <table class="rank-table">
+          <thead><tr><th>Sector</th><th>Eventos</th><th>%</th></tr></thead>
+          <tbody id="table-sectores"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="insight" id="insight-colonias" style="margin-top:16px;">Cargando…</div>
+  </section>
+
+  <!-- ============ 8. Marcas y submarcas ============ -->
+  <section class="section" id="marcas-section">
+    <div class="section-head">
+      <div class="eyebrow">Objeto del delito</div>
+      <h2>Marcas y submarcas más robadas</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Top marcas</h3>
+        <div class="chart-box tall" id="chart-marcas"></div>
+      </div>
+      <div class="card">
+        <h3>Top submarcas</h3>
+        <div class="chart-box tall" id="chart-submarcas"></div>
+      </div>
+    </div>
+    <div class="insight" id="insight-marcas" style="margin-top:16px;">Cargando…</div>
+  </section>
+
+  <!-- ============ 9. Detenidos y aseguramientos ============ -->
+  <section class="section" id="detenidos-section">
+    <div class="section-head">
+      <div class="eyebrow">Resultados operativos</div>
+      <h2>Detenidos y aseguramientos</h2>
+    </div>
+    <div class="card">
+      <div class="insight warn" id="insight-detenidos">Cargando…</div>
+    </div>
+  </section>
+
+  <!-- ============ 10. Vehículos recuperados ============ -->
+  <section class="section" id="recuperados-section">
+    <div class="section-head">
+      <div class="eyebrow">Resultados operativos</div>
+      <h2>Vehículos recuperados</h2>
+    </div>
+    <div class="card">
+      <div class="insight warn" id="insight-recuperados">Cargando…</div>
+    </div>
+  </section>
+
+  <!-- ============ 12. MAPA DINÁMICO ============ -->
+  <section class="section" id="map-section">
+    <div class="section-head">
+      <div class="eyebrow">Georreferencia</div>
+      <h2>Mapa dinámico de robos de vehículo</h2>
+      <p>Ubicaciones reproyectadas a WGS84 a partir de la columna <code>wkt_geom</code> (UTM 13N). Solo se muestran metadatos no sensibles al hacer clic en un punto.</p>
+    </div>
+    <div class="card">
+      <div class="map-toolbar">
+        <span class="map-stat-pill" id="map-total-stat">Cargando mapa…</span>
+      </div>
+      <div style="position:relative;">
+        <div id="map"></div>
+        <div class="map-legend">
+          <div><span class="legend-dot" style="background:#2E6DB4;"></span>Sin violencia</div>
+          <div><span class="legend-dot" style="background:#F5821F;"></span>Con violencia</div>
+        </div>
+      </div>
+      <div class="map-note">Los filtros globales de la parte superior (año, mes, sector, violencia, marca) también controlan qué puntos se muestran en este mapa.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot-brand">
+      <img src="CGES_logo.png" alt="CGES">
+      <div class="disclaimer">
+        Coordinación General Estratégica de Seguridad, Gobierno de Jalisco. Fuentes: C5 Zapopan y Fiscalía General del Estado de Jalisco. Las cifras presentadas son preliminares y están sujetas a actualización y validación posterior.
+      </div>
+    </div>
+    <div id="footer-date"></div>
+  </div>
+</footer>
+
+<!-- ============ Librerías (CDN) ============ -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.9.2/dist/proj4.js"></script>
+
+<!-- ============ Módulos propios ============ -->
+<script src="data.js"></script>
+<script src="charts.js"></script>
+<script src="map.js"></script>
+<script src="main.js"></script>
+<script>
+  document.getElementById("footer-date").textContent =
+    "Generado: " + new Date().toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" });
+</script>
+</body>
+</html>
